@@ -1,0 +1,27 @@
+# Visual Studio and per-user IDE state
+.vs/
+*.user
+*.suo
+*.rsuser
+
+# .NET build, publish, and test output
+[Bb]in/
+[Oo]bj/
+[Tt]est[Rr]esults/
+/artifacts/
+/publish/
+/outputs/
+*.trx
+*.binlog
+
+# Local experiments, fixtures, and disk images
+/work/
+*.vhd
+*.vhdx
+*.avhd
+*.avhdx
+*.log
+
+# Windows Explorer metadata
+Thumbs.db
+Desktop.ini

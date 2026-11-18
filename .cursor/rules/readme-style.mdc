@@ -1,0 +1,13 @@
+---
+description: Apply the Nefarius documentation style to README files
+globs: "**/README.md"
+alwaysApply: false
+---
+
+# README style
+
+- Start with the project name, available badges, and one sentence that states what the tool does.
+- Cover features, OS and architecture requirements, scope, quick start, reproducible build and test steps, support, licensing, and sources where relevant.
+- Test command examples against the current CLI. Pair preview with apply and use full VHDX paths for boot registration.
+- Distinguish verified Windows behavior from anything that still requires a reboot or an elevated integration test.
+- Put project-wide guidance in [AGENTS.md](../../AGENTS.md).
