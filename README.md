@@ -39,11 +39,16 @@ The tool grows images only. Keep a current backup and use a standalone image out
 
 ~~~powershell
 dotnet tool install -g Nefarius.Tools.DDG
-dotnet tool update -g Nefarius.Tools.DDG
-dotnet tool uninstall -g Nefarius.Tools.DDG
 ~~~
 
 This puts `devdrive-grow` on `PATH`. You can also build the executable from source as described under Build and test.
+
+To update or remove the tool, run:
+
+~~~powershell
+dotnet tool update -g Nefarius.Tools.DDG
+dotnet tool uninstall -g Nefarius.Tools.DDG
+~~~
 
 ## Quick start
 
