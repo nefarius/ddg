@@ -1,13 +1,50 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <!-- PackAsTool rejects platform TFMs (NETSDK1146); stay on bare net10.0 and mark the assembly Windows-only. -->
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>devdrive-grow</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>devdrive-grow</ToolCommandName>
+    <PackageId>Nefarius.Tools.DDG</PackageId>
+    <Authors>Benjamin Höglinger-Stelzer</Authors>
+    <Company>Nefarius Software Solutions e.U.</Company>
+    <Copyright>Copyright (c) 2026 Benjamin Höglinger-Stelzer</Copyright>
+    <Description>Grow a mounted Windows Dev Drive's VHDX, GPT partition, and ReFS filesystem in one command, and restore VHDX boot attachment.</Description>
+    <PackageTags>dev-drive;vhdx;refs;windows;storage;cli;dotnet-tool</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/nefarius/ddg</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/nefarius/ddg</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>NSS-Vibe-128x128.png</PackageIcon>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
   <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.Versioning.SupportedOSPlatformAttribute">
+      <_Parameter1>windows</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Storage.ps1" LogicalName="Storage.ps1" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="assets\NSS-Vibe-128x128.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

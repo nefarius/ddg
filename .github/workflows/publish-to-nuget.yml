@@ -1,0 +1,83 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write # required for NuGet trusted publishing OIDC exchange
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build DevDriveGrow.csproj -c Release
+
+      - name: Check CLI help
+        run: dotnet run --project DevDriveGrow.csproj -c Release --no-build -- --help
+
+      - name: Modify README.md for NuGet
+        shell: pwsh
+        run: |
+          $path = Join-Path $PWD 'README.md'
+          $text = [System.IO.File]::ReadAllText($path)
+          $text = [regex]::Replace($text, '(?m)^# <img[^>\r\n]*>', '# ')
+          $text = [regex]::Replace($text, '(?m)^<br clear="all" />\r?\n?', '')
+          $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+          [System.IO.File]::WriteAllText($path, $text, $utf8NoBom)
+
+      - name: Pack
+        run: dotnet pack DevDriveGrow.csproj -c Release --no-build -o ./artifacts/nupkg
+
+      - name: Verify package
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $packages = @(Get-ChildItem ./artifacts/nupkg -Filter 'Nefarius.Tools.DDG.*.nupkg')
+          if ($packages.Count -ne 1) { throw "Expected exactly one nupkg, found $($packages.Count)." }
+          if ($packages[0].Name -ne "Nefarius.Tools.DDG.$version.nupkg") {
+            throw "Package $($packages[0].Name) does not match tag version $version."
+          }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [System.IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
+          try {
+            $names = $zip.Entries | ForEach-Object FullName
+            foreach ($required in 'README.md', 'NSS-Vibe-128x128.png') {
+              if ($names -notcontains $required) { throw "$required missing from package." }
+            }
+            $settings = $names | Where-Object { $_ -like 'tools/net10.0/any/DotnetToolSettings.xml' }
+            if (-not $settings) { throw 'DotnetToolSettings.xml missing from package.' }
+          } finally { $zip.Dispose() }
+
+      - name: NuGet login (OIDC -> temp API key)
+        id: login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: Nefarius
+
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push ./artifacts/nupkg/*.nupkg
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
