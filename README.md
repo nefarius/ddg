@@ -1,6 +1,8 @@
 # <img src="assets/NSS-Vibe.png" height="140" align="left" alt="Nefarius Software Solutions logo" /> Dev Drive Grow (DDG)
 
 [![.NET build](https://github.com/nefarius/ddg/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/nefarius/ddg/actions/workflows/build.yml)
+[![NuGet version](https://img.shields.io/nuget/v/Nefarius.Tools.DDG)](https://www.nuget.org/packages/Nefarius.Tools.DDG/)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Nefarius.Tools.DDG)](https://www.nuget.org/packages/Nefarius.Tools.DDG/)
 [![Windows 11 x64](https://img.shields.io/badge/Windows%2011-x64-0078D4)](https://learn.microsoft.com/windows/dev-drive/)
 [![Built with .NET 10](https://img.shields.io/badge/Built%20with-.NET%2010-512BD4)](https://dotnet.microsoft.com/download/dotnet/10.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green)](LICENSE)
@@ -26,20 +28,30 @@ DDG uses the Windows Virtual Disk API for image growth and Windows Storage for p
 
 ## Supported systems
 
-- **Runtime** Windows 11 with Dev Drive enabled. The self-contained distribution targets x64 and bundles .NET 10.
+- **Runtime** Windows 11 with Dev Drive enabled. The .NET tool needs the .NET 10 SDK to install and a .NET 10 or later runtime to run. The self-contained build targets x64 and bundles .NET 10.
 - **Image layout** Local, standalone fixed or dynamically expanding VHDX with a writable, healthy GPT disk. The last partition must be the sole basic-data partition and contain a healthy ReFS Dev Drive. Microsoft reserved partitions can precede it.
 - **Permissions** Run in an administrator shell. You can also prefix the examples with gsudo.
 - **Boot registration** Windows 11 24H2 or later, with the backing volume accessible at startup.
 
 The tool grows images only. Keep a current backup and use a standalone image outside any checkpoint chain. Dynamic VHDXs can consume additional physical host space over time.
 
-## Quick start
-
-Build the executable using the commands below, then run these examples from the repository root in an administrator shell. Replace D: and 256GiB with your drive and target.
+## Installation
 
 ~~~powershell
-.\publish\devdrive-grow.exe D: --to 256GiB
-.\publish\devdrive-grow.exe D: --to 256GiB --apply
+dotnet tool install -g Nefarius.Tools.DDG
+dotnet tool update -g Nefarius.Tools.DDG
+dotnet tool uninstall -g Nefarius.Tools.DDG
+~~~
+
+This puts `devdrive-grow` on `PATH`. You can also build the executable from source as described under Build and test.
+
+## Quick start
+
+Run these examples in an administrator shell. Replace D: and 256GiB with your drive and target.
+
+~~~powershell
+devdrive-grow D: --to 256GiB
+devdrive-grow D: --to 256GiB --apply
 ~~~
 
 The first command previews the operation. The second grows the image and extends the partition and ReFS into available contiguous space. A quoted VHDX path works in place of the drive letter. The target is the **final virtual disk capacity** and accepts whole MiB, GiB, or TiB. Partition metadata and ReFS allocation granularity reduce usable capacity.
@@ -51,8 +63,8 @@ If growth stops halfway, inspect the preview and rerun with the same target once
 Use the full path to the detached VHDX. If it is currently mounted without registration, close files on it and dismount it first.
 
 ~~~powershell
-.\publish\devdrive-grow.exe "C:\Dev Drives\work.vhdx" --boot-attach
-.\publish\devdrive-grow.exe "C:\Dev Drives\work.vhdx" --boot-attach --apply
+devdrive-grow "C:\Dev Drives\work.vhdx" --boot-attach
+devdrive-grow "C:\Dev Drives\work.vhdx" --boot-attach --apply
 ~~~
 
 The apply command mounts the image and reads back its Windows startup record. An already mounted image with a matching registration makes this command a no-op.
