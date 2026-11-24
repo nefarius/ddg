@@ -76,11 +76,15 @@ jobs:
           user: Nefarius
 
       - name: Push to nuget.org
-        run: >
-          dotnet nuget push ./artifacts/nupkg/*.nupkg
-          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
-          --source https://api.nuget.org/v3/index.json
-          --skip-duplicate
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: |
+          # dotnet nuget push also uploads the matching .snupkg next to each .nupkg.
+          foreach ($package in Get-ChildItem ./artifacts/nupkg -Filter '*.nupkg') {
+            dotnet nuget push $package.FullName --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { throw "Push failed for $($package.Name)." }
+          }
 
       - name: Upload packages
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
